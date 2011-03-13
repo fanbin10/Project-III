@@ -1,76 +1,74 @@
 #include <fstream>
-#include "shoot.h"
+#include "evolution.h"
 
 
-int main(int argc, char *argv[])
-{
-  double energy = -0.08;
-  double bound = 5;
-  int c;
-  int steps;
-  int flag = 0;
-  double h = 0.0001;
-  double bic;
-  double m = 0;
-  double deep = 140;
-  double (*algorithm)(double*, double*, double, double, int);
-  algorithm = &run_eu;
+int main(int argc, char *argv[]){
+  int c; //the character used to process commandline argument
+  double hx, ht; // increment for time and space
+  int nx, nt; // length for space and time boundary
+  double vh, vw; // potential height and width
+  double sigma, height, k0; // gaussian wave packet width and height
+  nx = 50;
+  hx = 1;
+  ht = 1;
+  vw = 3;
+  vh = 1;
+  nt = 9;
+ 
+  nx *= 2; // we make the meshgrid center on 0;
+ 
+  double* meshXI = (double *)malloc(nx*sizeof(double)); //image part of meshgrid
+  double* meshXR = (double *)malloc(nx*sizeof(double)); //real part of meshgrid
+  double* V = (double *)malloc(nx*sizeof(double)); //Potential grid
   while ((c = getopt(argc, argv, "n:h:e:b:por")) != -1)
     switch(c)
       {
       case 'h':
-	h = atof(optarg);
 	break;
       case 'e':
-	energy = atof(optarg);
 	break;
       case 'p':
-	flag =1;
 	break;
       case 'b':
-	bound = atof(optarg);
 	break;
       case 'o':
-	m = 1;
 	break;
       case 'r':
-	algorithm = &run_rk;
-      }
+	break;
+      } // process commandline arguments
   
-  steps= bound/h;
-  energy *= deep;
+  sigma = 10;
+  height = 1;
+  k0 = 1;
+  
+  GaussianWave(sigma, height, k0, meshXR, meshXI, nx, hx);
+ // construct a gaussian wavepacket
+  Potential(V, nx, vh, vw);
+  // construct a potential step
 
+  
  
-  // construct grid for positions
-  double* meshP = (double *)malloc(steps*sizeof(double));
-  meshP[0] = 1-m;
-  // construct grid for velocities
-  double* meshV = (double *)malloc(steps*sizeof(double));
-  meshV[0] = m;
+  for (int i=1; i<nt-1; i++){
+    for (int j=0; j<nx; j++){
+      meshXI[j] += ht/(2*hx*hx) * (meshXR[j+1]-2*meshXR[j]+meshXR[j-1])-ht*V[j]*meshXR[j];
+      meshXR[j] += -1*ht/(2*hx*hx) * (meshXI[j+1]-2*meshXR[j]+meshXR[j-1])+ht*V[j]*meshXI[j];
+    }
+  }
 
-  
-  if (flag == 1){
-    bic=(*algorithm)(meshP, meshV,  energy, h, steps);
-    cout<<bic<<endl;
+  ofstream fp;
+  fp.open("plot.dat");
+  for (int j=0; j<nx; j++){
+    fp<<j<<"   "<<meshXR[j]<<endl;
+  }
+  fp.close();
+  FILE *pipe = popen("gnuplot -persist","w");
+  fflush(pipe);
+  fprintf(pipe,"set xrange [0:%d]\n",nx);
+  fflush(pipe);
+  fprintf(pipe,"set yrange [-6:6]\n");
+  fflush(pipe);
+  fprintf(pipe,"plot 'plot.dat' with lines\n");
+  fflush(pipe);
 
-      ofstream fp;
-      fp.open("plot.dat");
-      for (int j=0; j<steps; j++){
-	fp<<h*j<<"   "<<meshP[j]<<endl;
-      }
-      fp.close();
-      FILE *pipe = popen("gnuplot -persist","w");
-      fprintf(pipe,"set title \"energy: %f \" \n", energy/deep);
-      fflush(pipe);
-      fprintf(pipe,"set xrange [0:%d]\n", (int)floor(h*steps));
-      fflush(pipe);
-      fprintf(pipe,"set yrange [-4:4]\n");
-      fflush(pipe);
-      fprintf(pipe,"plot 'plot.dat' with lines\n");
-      fflush(pipe);
-      //sleep(2);
-    }						
-     else
-       search( h, steps, 0.0001);
   return 0;
 }

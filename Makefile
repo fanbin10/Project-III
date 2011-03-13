@@ -19,4 +19,4 @@ run:
 
 clean:
 
-	rm -rf *.o *.txt shoot
+	rm -rf *.o *.txt evo *~ *.dat
