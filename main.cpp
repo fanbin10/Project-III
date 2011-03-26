@@ -26,7 +26,7 @@ int main(int argc, char *argv[]){
 
   while ((c = getopt(argc, argv, "n:h:e:s:w:por")) != -1)
     switch(c)
-      {
+    {
       case 'n':
 	nt = atof(optarg);
 	break;
@@ -79,14 +79,14 @@ int main(int argc, char *argv[]){
       GaussianCombine(meshXR, meshXI, meshX, nx);
     }
 
-    if ( (flag==1) && (i%50==0) ){
+    if ( (flag==1) && (i%100==0) ){
       fp.open("plot.dat");
       for (int m=0; m<nx; m++){
 	fp<<m<<"   "<<meshX[m]<<endl;
       }
       fp.close();
     }
-    if ( (flag==1) && (i%50==0) ){
+    if ( (flag==1) && (i%100==0) ){
       
       fprintf(pipe,"set multiplot\n");
       fflush(pipe);

@@ -15,7 +15,7 @@ evolution.o: evolution.cpp
 check-syntax:
 	$(CPP) -o nul -S ${CHK_SOURCES}
 run:
-	./evo
+	./evo -p -e 1.0
 
 clean:
 
