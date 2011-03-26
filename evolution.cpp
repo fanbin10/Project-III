@@ -18,7 +18,7 @@ int Potential(double* V, int nx, double vh, double vw){
     V[i] = 0;
   // initialize potential grid
 
-  for (int i=floor(nx*0.75); i< floor(nx*0.75)+vw; i++ )
+  for (int i=nx/2+50; i<nx/2+50+vw; i++ )
     V[i] = vh;
   return 0;
 }
